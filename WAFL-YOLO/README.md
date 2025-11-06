@@ -47,61 +47,112 @@ For more information about the model, please refer to [here](https://github.com/
 
 ### Training
 
-To train the models, please exectute `train_wafl.py` like:
+All training parameters are configured in the `config.yaml` file located in the project root directory. To train the models, edit the configuration file and then execute `train_wafl.py`:
 
-```
-python train_wafl.py \
-    --batch 2 \
-    --preself-epochs 30 \
-    --epochs 90 \
-    --weights "yolov9-c.pt" \
-    --num_clients 10 \
-    --noniid_ratio 90 \
-    --topology "line"
+```bash
+# First, edit config.yaml to set your desired parameters
+# Then run:
+cd src
+python train_wafl.py
 ```
 
-After training, `outputs` directory is created and it includes `results.csv` and checkpoints (If the `outputs` directory already exists, a new directory named `outputs1` will be created. If `outputs1` exists, `outputs2` will be created, and so on). The following explains some config parameters.
+After training, `outputs` directory is created and it includes `results.csv` and checkpoints (If the `outputs` directory already exists, a new directory named `outputs1` will be created. If `outputs1` exists, `outputs2` will be created, and so on).
 
-#### weights
-The path to the file of model parameters. The parameters set here will be used as the initial values when training starts.
+#### Configuration Parameters
 
-#### num_clients
-The number of clients which participates in the collaborative learning.
+All parameters are defined in `config.yaml` under the `train` section. Key parameters include:
 
-#### noniid_ratio
-The percentage of each client's class in the noniid scenario. 
+- **weights**: The path to the file of model parameters. The parameters set here will be used as the initial values when training starts. (default: `"./src/yolov9-c.pt"`)
+- **num_clients**: The number of clients which participates in the collaborative learning. (default: `10`)
+- **noniid_ratio**: The percentage of each client's class in the noniid scenario. (default: `90`)
+- **topology**: Select from `"line"`, `"tree"` and `"ringstar"`. (default: `"line"`)
+- **iid_setting**: Set to `true` for IID scenario, `false` for non-IID. (default: `false`)
+- **dhe**: Set to `true` to use Detection Head Exchange method, `false` for Full Parameter Exchange. (default: `false`)
+- **hle**: Set to `true` to use Head Last Exchange method, `false` for Full Parameter Exchange. (default: `false`)
+- **detail_log**: Set to `true` to display training logs in more detail. (default: `false`)
+- **batch_size**: Total batch size for all GPUs. (default: `16`)
+- **epochs**: Total training epochs. (default: `100`)
+- **preself_epochs**: Number of preself epochs. (default: `30`)
 
-#### topology
-Select from `"line"`, `"tree"` and `"ringstar"`. `"line"` is set as the default.
+For a complete list of parameters, please refer to the `config.yaml` file.
 
-#### iid_setting
-Set with boolean `True` and training starts with iid scenario. `False` is set as the default. 
+### Weights & Biases (WandB) Integration
 
-#### dhe
-Set with boolean `True` and training starts with method DHE. `False` is set as the default. Training starts with method FPE in that case.
+WAFL-YOLO supports Weights & Biases for experiment tracking and visualization. WandB allows you to monitor training metrics, losses, and validation scores for each device in real-time.
 
-#### hle
-Set with boolean `True` and training starts with method HLE. `False` is set as the default. Training starts with method FPE in that case.
+#### Setup
 
-#### detail_log
-Displays the training log in more detail if `True` set. `False` is set as the default.
+1. Install WandB (already included in `requirements.txt`):
+```bash
+pip install wandb>=0.12.0
+```
+
+2. Login to WandB:
+```bash
+wandb login
+```
+
+3. Configure WandB in `config.yaml`:
+```yaml
+wandb:
+  enabled: true  # Enable/disable WandB logging
+  project: "WAFL-YOLO"  # WandB project name
+  entity: null  # Your WandB username or team name (null for default)
+  name: null  # Run name (null for auto-generated)
+  tags: ["federated-learning", "yolov9"]  # Optional tags
+  notes: "Training with 10 clients"  # Optional notes
+  mode: "online"  # online, offline, or disabled
+  log_model: false  # Log model checkpoints to WandB
+  log_interval: 1  # Log metrics every N epochs
+```
+
+#### Logged Metrics
+
+WandB logs the following metrics for each device (node):
+- **Training losses**: `node{i}/train_box_loss`, `node{i}/train_cls_loss`, `node{i}/train_dfl_loss`
+- **Validation metrics**: `node{i}/metrics_precision`, `node{i}/metrics_recall`, `node{i}/metrics_mAP_0.5`, `node{i}/metrics_mAP_0.5:0.95`
+- **Fitness scores**: `node{i}/fitness`, `node{i}/best_fitness`
+
+Where `{i}` is the device/node number (0 to num_clients-1).
+
+#### Viewing Results
+
+After starting training, WandB will provide a URL to view your experiment dashboard in real-time. You can:
+- Compare metrics across different devices
+- Track training and validation losses over time
+- Monitor mAP scores for each device
+- Visualize model performance
 
 ### Visualization
 
-The `outputs` directory includes the results of training. If you want to visualize the trends in mAP, you can run `mAP_plot.py` like: 
+The `outputs` directory includes the results of training. All visualization parameters are configured in the `config.yaml` file.
 
-```
-python ./utils/bin/mAP_plot.py --dirname "outputs"
-```
-Please specify the directory name for reading data and saving plot results with `--dirname`.
+#### mAP Visualization
 
-If you want to check the image with infered bounding box, you can use `box_visualization.py` like:
+To visualize the trends in mAP, configure the parameters in `config.yaml` under `visualization.map_plot` section and run:
 
+```bash
+cd src
+python ./utils/bin/mAP_plot.py
 ```
-python ./utils/bin/box_visualization.py \
-    --source '../data/custom_yolo/val/images/0957f84aecdf874d.jpg' \
-    --weights 'outputs/weights/node1/last.pt' \
-    --conf-thres 0.3 \
-    --project "outputs"
+
+Configuration parameters:
+- **dirname**: Directory name for reading data and saving plot results (default: `"outputs"`)
+- **preself**: Set to `true` to visualize preself training results (default: `false`)
+
+#### Bounding Box Visualization
+
+To check the image with inferred bounding boxes, configure the parameters in `config.yaml` under `visualization.box_vis` section and run:
+
+```bash
+cd src
+python ./utils/bin/box_visualization.py
 ```
-You can select the image with `--source`, the model with `--weights`, the confidence score threshold with `--conf-thres`, and in which directory to save with `--project`. Please specify the filename in `data/custom_yolo/val/images` for `--source`.
+
+Configuration parameters:
+- **source**: Path to the source image (default: `"../data/custom_yolo/val/images/0957f84aecdf874d.jpg"`)
+- **weights**: Path to the model weights (default: `"outputs/weights/node1/last.pt"`)
+- **conf_thres**: Confidence score threshold (default: `0.25`)
+- **project**: Directory to save results (default: `"outputs"`)
+
+For all available visualization parameters, please refer to the `visualization` section in `config.yaml`.

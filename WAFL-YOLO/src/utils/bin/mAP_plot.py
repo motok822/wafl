@@ -1,31 +1,46 @@
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
 import csv
+import yaml
+from pathlib import Path
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--preself', type=bool, default=False)
-parser.add_argument('--dirname', type=str, default="outputs")
+def load_config(config_path='../../../config.yaml'):
+    """Load configuration from YAML file."""
+    if not Path(config_path).is_absolute():
+        config_path = Path(__file__).parent / config_path
 
-args = parser.parse_args()
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    # Extract visualization configuration
+    vis_config = config['visualization']['map_plot']
+
+    class ConfigNamespace:
+        def __init__(self, config_dict):
+            for key, value in config_dict.items():
+                setattr(self, key, value)
+
+    return ConfigNamespace(vis_config)
+
 
 def read_mAP_data_from_csv(filename):
     mAPs = []
-    
+
     with open(filename, 'r') as f:
         reader = csv.reader(f)
-        
+
         for i, row in enumerate(reader):
-            if i == 0: 
+            if i == 0:
                 continue
             mAPs.append(float(row[6]))
-    
+
     return mAPs
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
+    args = load_config()
     plt.figure(figsize=(10, 6))
     all_node_mAPs = []
     for i in range(6):

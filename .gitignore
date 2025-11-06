@@ -13,3 +13,6 @@ WAFL-Whisper/data/*
 WAFL-Whisper/result/*
 !WAFL-Whisper/result/.gitkeep
 WAFL-Whisper/output_dir/*
+WAFL-YOLO/output_dir/*
+WAFL-YOLO/data/*
+**/**.pt

@@ -1,0 +1,6 @@
+{
+    "editor.formatOnSave": true,
+    "python.defaultInterpreterPath": "${workspaceFolder}/WAFL-YOLO/.venv/bin/python",
+    "git.ignoreLimitWarning": true,
+}
+  

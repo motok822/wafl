@@ -1,0 +1,136 @@
+# WAFL-YOLO Configuration File
+# This file contains all configuration parameters for training, validation, and visualization
+
+# WandB Configuration
+wandb:
+  enabled: true  # Enable/disable WandB logging
+  project: "WAFL-YOLO"  # WandB project name
+  entity: null  # WandB entity (username or team name), null for default
+  name: null  # Run name, null for auto-generated
+  tags: []  # List of tags for the run
+  notes: ""  # Notes for the run
+  mode: "online"  # online, offline, or disabled
+  log_model: false  # Log model checkpoints to WandB
+  log_interval: 1  # Log metrics every N epochs
+
+# Training Configuration
+train:
+  # Model and data paths
+  weights: "./src/yolov9-c.pt"
+  cfg: "./src/models/detect/yolov9-c.yaml"
+  data: "./config/custom_dataset.yaml"
+  hyp: "./config/hyps/hyp.scratch-high.yaml"
+
+  # Training parameters
+  epochs: 100
+  preself_epochs: 30
+  batch_size: 16
+  imgsz: 640
+
+  # Training options
+  rect: false
+  nosave: false
+  noval: false
+  noautoanchor: false
+
+  # Data loading
+  cache: null  # Options: null, 'ram', 'disk'
+  image_weights: false
+  workers: 2
+  quad: false
+  close_mosaic: 15
+  min_items: 0
+
+  # Optimization
+  optimizer: "SGD"  # Options: SGD, Adam, AdamW, LION
+  cos_lr: false
+  flat_cos_lr: false
+  fixed_lr: true
+  label_smoothing: 0.0
+  sync_bn: false
+
+  # Multi-scale and augmentation
+  multi_scale: false
+  single_cls: false
+
+  # Device settings
+  device: "0"  # cuda device, i.e. 0 or 0,1,2,3 or cpu
+  seed: 0
+  local_rank: -1
+
+  # Saving and logging
+  project: "./src/outputs"
+  exist_ok: false
+  save_period: -1  # Save checkpoint every x epochs (disabled if < 1)
+  patience: 100  # EarlyStopping patience (epochs without improvement)
+
+  # WAFL specific parameters
+  num_clients: 10
+  iid_setting: false
+  noniid_ratio: 90
+  topology: "line"  # Options: line, tree, ringstar
+  dhe: false  # Detection Head Exchange
+  hle: false  # Head Last Exchange
+  detail_log: false
+
+# Validation Configuration
+validation:
+  data: "./config/custom_dataset.yaml"
+  weights: null
+  batch_size: 32
+  imgsz: 640
+  conf_thres: 0.001
+  iou_thres: 0.7
+  max_det: 300
+  task: "val"  # Options: train, val, test, speed, study
+  device: ""
+  workers: 8
+  single_cls: false
+  augment: false
+  verbose: false
+  save_txt: false
+  save_hybrid: false
+  save_conf: false
+  save_json: false
+  project: "./src/runs/val"
+  name: "exp"
+  exist_ok: false
+  half: true
+  dnn: false
+  min_items: 0
+
+# Visualization Configuration
+visualization:
+  # mAP plotting
+  map_plot:
+    preself: false
+    dirname: "outputs"
+
+  # Bounding box visualization
+  box_vis:
+    source: "../data/custom_yolo/val/images/0957f84aecdf874d.jpg"
+    weights: "outputs/weights/node1/last.pt"
+    data: "./data/coco128.yaml"
+    imgsz: [640]
+    conf_thres: 0.25
+    iou_thres: 0.45
+    max_det: 1000
+    device: "0"
+    view_img: false
+    save_txt: false
+    save_conf: false
+    save_crop: false
+    nosave: false
+    classes: null
+    agnostic_nms: false
+    augment: false
+    visualize: false
+    update: false
+    project: "outputs"
+    exist_ok: false
+    line_thickness: 3
+    hide_labels: false
+    hide_conf: false
+    half: false
+    dnn: false
+    vid_stride: 1

@@ -1,10 +1,10 @@
-import argparse
 import os
 import platform
 import sys
 from pathlib import Path
 
 import torch
+import yaml
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO root directory
@@ -184,44 +184,55 @@ def run(
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
 
 
-def parse_opt():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolo.pt', help='model path or triton URL')
-    parser.add_argument('--source', type=str, default=ROOT / 'data/images', help='file/dir/URL/glob/screen/0(webcam)')
-    parser.add_argument('--data', type=str, default=ROOT / 'data/coco128.yaml', help='(optional) dataset.yaml path')
-    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640], help='inference size h,w')
-    parser.add_argument('--conf-thres', type=float, default=0.25, help='confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.45, help='NMS IoU threshold')
-    parser.add_argument('--max-det', type=int, default=1000, help='maximum detections per image')
-    parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
-    parser.add_argument('--view-img', action='store_true', help='show results')
-    parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
-    parser.add_argument('--save-conf', action='store_true', help='save confidences in --save-txt labels')
-    parser.add_argument('--save-crop', action='store_true', help='save cropped prediction boxes')
-    parser.add_argument('--nosave', action='store_true', help='do not save images/videos')
-    parser.add_argument('--classes', nargs='+', type=int, help='filter by class: --classes 0, or --classes 0 2 3')
-    parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
-    parser.add_argument('--augment', action='store_true', help='augmented inference')
-    parser.add_argument('--visualize', action='store_true', help='visualize features')
-    parser.add_argument('--update', action='store_true', help='update all models')
-    parser.add_argument('--project', default=ROOT / 'outputs', help='save results to project/name')
-    parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
-    parser.add_argument('--line-thickness', default=3, type=int, help='bounding box thickness (pixels)')
-    parser.add_argument('--hide-labels', default=False, action='store_true', help='hide labels')
-    parser.add_argument('--hide-conf', default=False, action='store_true', help='hide confidences')
-    parser.add_argument('--half', action='store_true', help='use FP16 half-precision inference')
-    parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
-    parser.add_argument('--vid-stride', type=int, default=1, help='video frame-rate stride')
-    opt = parser.parse_args()
-    opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
+def load_config(config_path='../../../config.yaml'):
+    """Load configuration from YAML file."""
+    if not Path(config_path).is_absolute():
+        config_path = Path(__file__).parent / config_path
+
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    # Extract visualization configuration
+    vis_config = config['visualization']['box_vis']
+
+    class ConfigNamespace:
+        def __init__(self, config_dict):
+            for key, value in config_dict.items():
+                setattr(self, key, value)
+
+    opt = ConfigNamespace(vis_config)
+
+    # Handle special key transformations
+    opt.conf_thres = vis_config['conf_thres']
+    opt.iou_thres = vis_config['iou_thres']
+    opt.max_det = vis_config['max_det']
+    opt.view_img = vis_config['view_img']
+    opt.save_txt = vis_config['save_txt']
+    opt.save_conf = vis_config['save_conf']
+    opt.save_crop = vis_config['save_crop']
+    opt.agnostic_nms = vis_config['agnostic_nms']
+    opt.exist_ok = vis_config['exist_ok']
+    opt.line_thickness = vis_config['line_thickness']
+    opt.hide_labels = vis_config['hide_labels']
+    opt.hide_conf = vis_config['hide_conf']
+    opt.vid_stride = vis_config['vid_stride']
+
+    # Expand imgsz
+    if isinstance(opt.imgsz, list):
+        opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1
+    else:
+        opt.imgsz = [opt.imgsz, opt.imgsz]
+
     print_args(vars(opt))
     return opt
 
 
-def main(opt):
+def main(opt=None):
+    if opt is None:
+        opt = load_config()
     run(**vars(opt))
 
 
 if __name__ == "__main__":
-    opt = parse_opt()
+    opt = load_config()
     main(opt)
