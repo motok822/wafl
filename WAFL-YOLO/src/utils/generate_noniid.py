@@ -6,6 +6,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Subset
 import random
+from pathlib import Path
 
 
 def generate_noniid(dl, batch_size, num_clients, num_classes, filename, ratio=90, random_seed=42):
@@ -48,6 +49,8 @@ def generate_noniid(dl, batch_size, num_clients, num_classes, filename, ratio=90
 
         index += batch_size
 
+    # Create parent directory if it doesn't exist
+    Path(filename).parent.mkdir(parents=True, exist_ok=True)
     torch.save(indices, filename)
     print('Done!')
 

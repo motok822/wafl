@@ -26,7 +26,6 @@ from utils.autobatch import check_train_batch_size
 from utils.callbacks import Callbacks
 from utils.dataloaders import create_dataloader
 from utils.general import (
-    LOGGER,
     TQDM_BAR_FORMAT,
     check_amp,
     check_dataset,
@@ -39,13 +38,11 @@ from utils.general import (
     intersect_dicts,
     labels_to_class_weights,
     labels_to_image_weights,
-    methods,
     one_cycle,
     one_flat_cycle,
     print_args,
     yaml_save,
 )
-from utils.loggers import Loggers
 from utils.loss_tal_dual import ComputeLoss
 from utils.metrics import fitness
 from utils.torch_utils import (
@@ -126,9 +123,6 @@ def train(
     if isinstance(hyp, str):
         with open(hyp, errors="ignore") as f:
             hyp = yaml.safe_load(f)  # load hyps dict
-    LOGGER.info(
-        colorstr("hyperparameters: ") + ", ".join(f"{k}={v}" for k, v in hyp.items())
-    )
     hyp["anchor_t"] = 5.0
     opt.hyp = hyp.copy()  # for saving hyps to checkpoints
 
@@ -136,20 +130,10 @@ def train(
     yaml_save(save_dir / "hyp.yaml", hyp)
     yaml_save(save_dir / "opt.yaml", vars(opt))
 
-    # Loggers
-    data_dict = None
-    loggers = Loggers(save_dir, weights, opt, hyp, LOGGER)  # loggers instance
-
-    # Register actions
-    for k in methods(loggers):
-        callbacks.register_action(k, callback=getattr(loggers, k))
-
-    # Process custom dataset artifact link
-    data_dict = loggers.remote_dataset
-
     # Config
     cuda = device.type != "cpu"
     init_seeds(opt.seed + 1, deterministic=True)
+    data_dict = None  # Initialize data_dict
     data_dict = data_dict or check_dataset(data)  # check if None
     train_path, val_path = data_dict["train"], data_dict["val"]
     print(f"train path : {train_path}, val path : {val_path}")
@@ -180,9 +164,6 @@ def train(
             csd = ckpt["model"].float().state_dict()  # checkpoint state_dict as FP32
             csd = intersect_dicts(csd, model.state_dict(), exclude=exclude)  # intersect
             model.load_state_dict(csd, strict=False)  # load
-            LOGGER.info(
-                f"Transferred {len(csd)}/{len(model.state_dict())} items from {weights_i}"
-            )  # report
         else:
             model = Model(cfg, ch=3, nc=nc, anchors=hyp.get("anchors")).to(
                 device
@@ -225,7 +206,6 @@ def train(
     # Batch size
     if batch_size == -1:  # single-GPU only, estimate best batch size
         batch_size = check_train_batch_size(models[0], imgsz, amps[0])
-        loggers.on_params_update({"batch_size": batch_size})
 
     # Optimizer
     nbs = 64  # nominal batch size
@@ -281,6 +261,7 @@ def train(
         min_items=opt.min_items,
         num_clients=num_clients,
         num_classes=nc,
+        noniid_ratio=noniid_ratio,
         iid_setting=iid_setting,
         mode="train",
     )
@@ -340,12 +321,6 @@ def train(
         ComputeLoss(models[i]) for i in range(num_clients)
     ]  # init loss class
     callbacks.run("on_train_start")
-    LOGGER.info(
-        f"Image sizes {imgsz} train, {imgsz} val\n"
-        f"Using {train_loaders[0].num_workers} dataloader workers\n"
-        f"Logging results to {colorstr('bold', save_dir)}\n"
-        f"Starting training for {epochs} epochs..."
-    )
 
     for epoch in range(
         start_epoch, epochs
@@ -373,7 +348,6 @@ def train(
                     range(dataset.n), weights=iw, k=dataset.n
                 )  # rand weighted idx
             if epoch == (epochs - opt.close_mosaic):
-                LOGGER.info("Closing dataloader mosaic")
                 dataset.mosaic = False
 
             mlosses = [
@@ -384,18 +358,7 @@ def train(
                 loader = tqdm(
                     loader, total=nb[node_i], bar_format=TQDM_BAR_FORMAT
                 )  # progress bar
-                LOGGER.info(
-                    ("\n" + "%11s" * 7)
-                    % (
-                        "Epoch",
-                        "GPU_mem",
-                        "box_loss",
-                        "cls_loss",
-                        "dfl_loss",
-                        "Instances",
-                        "Size",
-                    )
-                )
+
             optimizers[node_i].zero_grad()
             for (
                 i,
