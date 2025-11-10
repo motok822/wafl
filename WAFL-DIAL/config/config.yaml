@@ -1,0 +1,32 @@
+training:
+  epochs: 100
+  local_train_epochs: 10
+  seed: 42
+  lr: 1e-5
+  save_dir: "output"
+  fedprox:
+    enabled: false
+    alpha: 0.01
+  dynamic_lr:
+    enabled: false
+    beta: 1e-3
+    target_ratio: 0.5
+    multiplier: 1.00
+
+dataset:
+  batch_size: 64
+  class_num: 100
+  non_iid: 0.9
+  seed: 42
+
+federated:
+  enabled: true
+  num_devices: 10
+  local_training_steps: 10
+  max_mult: 1.0
+
+wandb:
+  enabled: true
+  project: "vit-wafl"
+  group: "middle-thesis"
+  key: "8f04b7cc62418f10b17b79cf96ebeff1e8fa00b5"  # Replace with your actual key
