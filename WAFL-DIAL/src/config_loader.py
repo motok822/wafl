@@ -1,4 +1,3 @@
-import argparse
 import logging
 from pathlib import Path
 from typing import Optional
@@ -92,6 +91,10 @@ class FederatedConfig(BaseModel):
     )
     max_mult: float = Field(
         default=1.0, gt=0.0, description="Maximum multiplication factor"
+    )
+    contact_pattern: str = Field(
+        default="rwp_n10_a0500_r100_p10_s01.json",
+        description="Path to contact pattern JSON file",
     )
     local_training_steps: Optional[int] = Field(
         default=10, ge=1, description="Number of local training steps per epoch"

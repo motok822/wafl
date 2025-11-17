@@ -3,7 +3,7 @@
 
 #PBS -q regular-g
 #PBS -l select=1
-#PBS -l walltime=06:00:00
+#PBS -l walltime=24:00:00
 #PBS -W group_list=gn77
 #PBS -j oe
 

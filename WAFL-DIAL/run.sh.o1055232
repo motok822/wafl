@@ -1,0 +1,64 @@
+/work/gn77/n77002/wafl/WAFL-DIAL/.venv/bin/python
+wandb: Currently logged in as: motok to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182311-vgovamio
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node0
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/vgovamio
+wandb: setting up run 2khfr7q6
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182312-2khfr7q6
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node1
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/2khfr7q6
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182313-7d8d33by
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node2
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/7d8d33by
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182313-oa9vvp8w
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node3
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/oa9vvp8w
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182314-ujl6vmrh
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node4
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/ujl6vmrh
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182314-ycskkbvh
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node5
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/ycskkbvh
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182315-d6nixsgl
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node6
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/d6nixsgl
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182315-1h0i57ta
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node7
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/1h0i57ta
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182316-qxk68xdh
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node8
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/qxk68xdh
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_182316-46nqchue
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node9
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/46nqchue
+=>> PBS: job killed: walltime 21716 exceeded limit 21600

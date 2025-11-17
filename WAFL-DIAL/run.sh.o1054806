@@ -1,0 +1,65 @@
+/work/gn77/n77002/wafl/WAFL-DIAL/.venv/bin/python
+wandb: Currently logged in as: motok to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run 0h7vhsx4
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181534-0h7vhsx4
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node0
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/0h7vhsx4
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181535-vxga52j7
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node1
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/vxga52j7
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181536-dopkpieq
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node2
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/dopkpieq
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181536-l1ylx7b8
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node3
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/l1ylx7b8
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181537-v154nqj4
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node4
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/v154nqj4
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181537-myptgp37
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node5
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/myptgp37
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181538-xk3lbixp
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node6
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/xk3lbixp
+wandb: setting up run lz5v5ea0
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181538-lz5v5ea0
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node7
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/lz5v5ea0
+wandb: setting up run 35kz459k
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181539-35kz459k
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node8
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/35kz459k
+wandb: Tracking run with wandb version 0.22.3
+wandb: Run data is saved locally in /work/gn77/n77002/wafl/WAFL-DIAL/wandb/run-20251110_181540-rtvd71ex
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run nodes10_noniid90_lr1e-05_epochs1000_node9
+wandb: ⭐️ View project at https://wandb.ai/motok/vit-wafl
+wandb: 🚀 View run at https://wandb.ai/motok/vit-wafl/runs/rtvd71ex

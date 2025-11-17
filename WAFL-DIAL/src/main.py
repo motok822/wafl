@@ -12,40 +12,46 @@ from config_loader import ConfigLoader
 from torch.utils.data import Subset
 from torchvision import transforms
 from utils import create_subsets, evaluate, update_nets
+from utils.lr_scheduler import calculate_next_lr, set_optimizer_lr
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 config_loader = ConfigLoader()
 config = config_loader.load_config(ROOT_DIR / "config" / "config.yaml")
 
-# Use Pydantic config directly instead of argparse namespace
-wandb_config = config.wandb
-training_config = config.training
-dataset_config = config.dataset
-federated_config = config.federated
 
 # Initialize WandB with proper configuration
-if wandb_config.enabled:
+if config.wandb.enabled:
     # Generate run name based on configuration
-    run_name = f"nodes{federated_config.num_devices}_noniid{int(dataset_config.non_iid * 100)}_lr{training_config.lr}_epochs{training_config.epochs}"
 
     # Set WandB API key if provided
-    if wandb_config.key:
+    if config.wandb.key:
         import os
 
-        os.environ["WANDB_API_KEY"] = wandb_config.key
+        os.environ["WANDB_API_KEY"] = config.wandb.key
+
+    wandb.login(key=config.wandb.key)
+    run_name = f"{config.wandb.project}_nodes{config.federated.num_devices}_iid{config.dataset.non_iid}_lr{config.training.lr}_bs{config.dataset.batch_size}"
+    if config.training.dynamic_lr.enabled:
+        run_name += f"_DynamicLRb{config.training.dynamic_lr.beta}t{config.training.dynamic_lr.target_ratio}"
+    if config.training.fedprox.enabled:
+        run_name += f"_FedProx{config.training.fedprox.alpha}"
 
     runs = []
-    for i in range(config.federated.num_devices):
-        if config.wandb.enabled:
-            run = wandb.init(
-                project=config.wandb.project,
-                name=run_name + f"_node{i}",
-                reinit="create_new",
-                group=config.wandb.group,
-            )
-            runs.append(run)
-        else:
-            runs.append(None)
+    for i, _ in enumerate(range(config.federated.num_devices)):
+        wandb_run = wandb.init(
+            project=config.wandb.project,
+            name=run_name + f"_run{i}",
+            group=config.wandb.group,
+            config={
+                "num_devices": config.federated.num_devices,
+                "non_iid": config.dataset.non_iid,
+                "lr": config.training.lr,
+                "epochs": config.training.epochs,
+                "batch_size": config.dataset.batch_size,
+            },
+            reinit="create_new",
+        )
+        runs.append(wandb_run)
 
 else:
     print("WandB logging disabled")
@@ -53,8 +59,8 @@ else:
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
-torch.random.manual_seed(training_config.seed)
-random.seed(training_config.seed)
+torch.random.manual_seed(config.training.seed)
+random.seed(config.training.seed)
 train_transform = transforms.Compose(
     [
         transforms.Resize(224),
@@ -76,19 +82,19 @@ train_dataset = torchvision.datasets.CIFAR100(
 train_dataloaders = []
 print("Data loaded")
 
-# Use config values directly
-node_num = federated_config.num_devices
-class_num = dataset_config.class_num
-batch_size = dataset_config.batch_size
-noniid = dataset_config.non_iid
-pre_epoch = training_config.local_train_epochs
-local_training_steps = federated_config.local_training_steps
-max_epoch = training_config.epochs
-save_dir = training_config.save_dir
-lr = training_config.lr
+# Use config values from the namespace
+node_num = config.federated.num_devices  # Fixed: should be num_devices, not num_clients
+class_num = config.dataset.class_num  # Fixed: should be class_num, not dataset_seed
+batch_size = config.dataset.batch_size
+noniid = config.dataset.non_iid
+pre_epoch = config.training.local_train_epochs
+local_training_steps = config.federated.local_training_steps
+max_epoch = config.training.epochs
+save_dir = getattr(config.training, "save_dir", "output")  # Add fallback
+lr_list = [config.training.lr for _ in range(node_num)]
 
 contact_list = []
-filename = ROOT_DIR / "src" / "contact_pattern" / "rwp_n10_a0500_r100_p10_s01.json"
+filename = ROOT_DIR / "src" / "contact_pattern" / config.federated.contact_pattern
 print(f"Loading ... {filename}")
 with open(filename, "r") as f:
     contact_list = json.load(f)
@@ -143,11 +149,11 @@ print("Models loaded")
 optimizers = [
     optim.AdamW(
         [
-            {"params": [nets[i].cls_token], "lr": lr},
-            {"params": [nets[i].pos_embed], "lr": lr},
-            {"params": nets[i].patch_embed.parameters(), "lr": lr},
-            {"params": nets[i].blocks.parameters(), "lr": lr},
-            {"params": nets[i].norm.parameters(), "lr": lr},
+            {"params": [nets[i].cls_token], "lr": lr_list[i]},
+            {"params": [nets[i].pos_embed], "lr": lr_list[i]},
+            {"params": nets[i].patch_embed.parameters(), "lr": lr_list[i]},
+            {"params": nets[i].blocks.parameters(), "lr": lr_list[i]},
+            {"params": nets[i].norm.parameters(), "lr": lr_list[i]},
             {"params": nets[i].head.parameters(), "lr": 1e-3},
         ]
     )
@@ -193,18 +199,12 @@ for epoch in range(pre_epoch):
         )
         runs[n].log(
             {
-                f"train_loss_{n}": avg_loss,
-                f"train_accuracy_{n}": accuracy,
-            },
-            step=epoch,
-        )
-    for n in range(node_num):
-        acc = evaluate(nets[n], validate_dataloader, device)
-        runs[n].log(
-            {
-                f"eval_accuracy_{n}": acc,
-            },
-            step=epoch,
+                "pre_self_train_loss": avg_loss,
+                "pre_self_train_accuracy": accuracy,
+                "pre_self_epoch": epoch + 1,
+                "phase": "pre_self_training",
+                "learning_rate": lr_list[n],
+            }
         )
 
 
@@ -266,11 +266,30 @@ for epoch in range(max_epoch):
 
         runs[n].log(
             {
-                f"train_loss_{n}": avg_loss,
-                f"train_accuracy_{n}": accuracy,
+                "wafl_train_loss": avg_loss,
+                "wafl_train_accuracy": accuracy,
+                "wafl_epoch": pre_epoch + epoch + 1,
+                "phase": "wafl_training",
+                "learning_rate": lr_list[n],
             },
             step=pre_epoch + epoch,
         )
+
+        if config.training.dynamic_lr.enabled:
+            next_lr = calculate_next_lr(
+                device_id=n,
+                last_loss=avg_loss,
+                model_state_dict=net.state_dict(),
+                avg_model_state_dict=None,  # Not used in current calculation
+                optimizer=optimizer,
+                current_lr=optimizer.param_groups[0]["lr"],
+                beta=config.training.dynamic_lr.beta,
+                device=device,
+                target_ratio=config.training.dynamic_lr.target_ratio,
+                wandb_run=runs[n] if config.wandb.enabled else None,
+            )
+            lr_list[n] = next_lr
+            set_optimizer_lr(optimizer, next_lr)
 
     # Validation evaluation
     validation_accuracies = []
@@ -279,7 +298,9 @@ for epoch in range(max_epoch):
         validation_accuracies.append(acc)
         runs[n].log(
             {
-                f"eval_accuracy_{n}": acc,
+                "wafl_val_accuracy": acc,
+                "wafl_epoch": pre_epoch + epoch + 1,
+                "phase": "wafl_training",
             },
             step=pre_epoch + epoch,
         )
