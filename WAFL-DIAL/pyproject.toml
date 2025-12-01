@@ -29,6 +29,7 @@ dependencies = [
     "torch>=2.5.1",
     "torchvision>=0.20.1",
     "tqdm>=4.67.1",
+    "transformers>=4.57.3",
     "triton>=3.3.0",
     "typing-extensions>=4.13.2",
     "urllib3>=2.4.0",

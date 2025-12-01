@@ -1,15 +1,15 @@
 training:
-  epochs: 100
-  local_train_epochs: 5
+  epochs: 2000
+  local_train_epochs: 10
   seed: 42
   lr: 1e-5
   save_dir: "output"
   fedprox:
     enabled: false
-    alpha: 0.01
+    alpha: 4e-1
   dynamic_lr:
     enabled: false
-    beta: 1e-3
+    beta: 4e-1
     target_ratio: 0.5
     multiplier: 1.00
 
@@ -21,13 +21,13 @@ dataset:
 
 federated:
   enabled: true
-  contact_pattern: "rwp_n04_a0250_r090_p03_s04.json"
-  num_devices: 4
+  contact_pattern: "rwp_n10_a0500_r100_p10_s01.json"
+  num_devices: 10
   local_training_steps: 10
   max_mult: 1.0
 
 wandb:
   enabled: true
-  project: "vit-wafl"
+  project: "vit-wafl-10"
   group: "middle-thesis"
   key: "8f04b7cc62418f10b17b79cf96ebeff1e8fa00b5"  # Replace with your actual key

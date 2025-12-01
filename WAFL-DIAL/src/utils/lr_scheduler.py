@@ -71,7 +71,7 @@ def calculate_next_lr(
     if wandb_run is not None:
         wandb_run.log({"learning_rate": next_lr})
 
-    return next_lr
+    return next_lr, ratio
 
 
 def set_optimizer_lr(optimizer, lr):

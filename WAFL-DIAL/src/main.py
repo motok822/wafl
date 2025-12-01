@@ -129,6 +129,7 @@ validate_dataset = torchvision.datasets.CIFAR100(
 validate_dataloader = torch.utils.data.DataLoader(
     validate_dataset, batch_size=128, shuffle=False
 )
+train_steps = [0 for _ in range(node_num)]
 
 del train_dataset
 del validate_dataset
@@ -154,11 +155,12 @@ optimizers = [
             {"params": nets[i].patch_embed.parameters(), "lr": lr_list[i]},
             {"params": nets[i].blocks.parameters(), "lr": lr_list[i]},
             {"params": nets[i].norm.parameters(), "lr": lr_list[i]},
-            {"params": nets[i].head.parameters(), "lr": 1e-3},
+            {"params": nets[i].head.parameters(), "lr": lr_list[i]},
         ]
     )
     for i in range(node_num)
 ]
+# optimizers = [optim.AdamW(nets[i].parameters(), lr=lr_list[i]) for i in range(node_num)]
 criterion = nn.CrossEntropyLoss()
 
 
@@ -190,6 +192,13 @@ for epoch in range(pre_epoch):
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
+            runs[n].log(
+                {
+                    "train_loss": loss.item(),
+                },
+                step=train_steps[n],
+            )
+            train_steps[n] += 1
 
         avg_loss = running_loss / max(1, batch_index + 1)
         accuracy = 100 * correct / total if total > 0 else 0
@@ -199,8 +208,7 @@ for epoch in range(pre_epoch):
         )
         runs[n].log(
             {
-                "pre_self_train_loss": avg_loss,
-                "pre_self_train_accuracy": accuracy,
+                "train_accuracy": accuracy,
                 "pre_self_epoch": epoch + 1,
                 "phase": "pre_self_training",
                 "learning_rate": lr_list[n],
@@ -214,8 +222,10 @@ print("Pre-Self Training completed")
 for n in range(node_num):
     torch.save(nets[n].state_dict(), f"{save_dir}/prenet_e{pre_epoch}_n{n}.pth")
 
+last_eval_acc = [0.0 for _ in range(node_num)]
 for n in range(node_num):
     acc = evaluate(nets[n], validate_dataloader, device)
+    last_eval_acc[n] = acc
     print(f"Node {n} Validation Accuracy {acc:.2f}%")
 
 print("Start WAFL")
@@ -237,6 +247,7 @@ for epoch in range(max_epoch):
         nbr = contact[str(n)]
         if len(nbr) == 0:
             continue
+        print(f"Epoch [{epoch + 1}/{max_epoch}] Node {n} training with neighbors {nbr}")
 
         net = nets[n]
         optimizer = optimizers[n]
@@ -254,33 +265,59 @@ for epoch in range(max_epoch):
             optimizer.zero_grad()
             outputs = net(inputs)
             loss = criterion(outputs, labels)
+            if config.training.fedprox.enabled:
+                fedprox_reg = 0.0
+                for param_name, param in net.named_parameters():
+                    prox_param = torch.zeros_like(param)
+                    for neighbor in nbr:
+                        neighbor_param = nets[neighbor].state_dict()[param_name]
+                        prox_param += neighbor_param
+                    prox_param /= len(nbr)
+                    fedprox_reg += torch.norm(param - prox_param, p=2) ** 2
+                loss += (config.training.fedprox.alpha / 2) * fedprox_reg
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
+            runs[n].log(
+                {
+                    "train_loss": loss.item(),
+                    "fedprox_reg": fedprox_reg
+                    if config.training.fedprox.enabled
+                    else 0,
+                },
+                step=train_steps[n],
+            )
+            train_steps[n] += 1
 
         avg_loss = running_loss / max(1, batch_index + 1)
         accuracy = 100 * correct / total if total > 0 else 0
 
         runs[n].log(
             {
-                "wafl_train_loss": avg_loss,
-                "wafl_train_accuracy": accuracy,
-                "wafl_epoch": pre_epoch + epoch + 1,
+                "train_accuracy": accuracy,
+                "wafl_epoch": epoch + 1,
                 "phase": "wafl_training",
                 "learning_rate": lr_list[n],
             },
-            step=pre_epoch + epoch,
         )
 
         if config.training.dynamic_lr.enabled:
-            next_lr = calculate_next_lr(
+            avg_model_state_dict = {}
+            for key in net.state_dict().keys():
+                avg_param = torch.zeros_like(net.state_dict()[key])
+                for neighbor in nbr:
+                    neighbor_param = nets[neighbor].state_dict()[key]
+                    avg_param += neighbor_param
+                avg_param /= len(nbr)
+                avg_model_state_dict[key] = avg_param
+            next_lr, ratio = calculate_next_lr(
                 device_id=n,
                 last_loss=avg_loss,
                 model_state_dict=net.state_dict(),
-                avg_model_state_dict=None,  # Not used in current calculation
+                avg_model_state_dict=avg_model_state_dict,
                 optimizer=optimizer,
                 current_lr=optimizer.param_groups[0]["lr"],
                 beta=config.training.dynamic_lr.beta,
@@ -291,18 +328,32 @@ for epoch in range(max_epoch):
             lr_list[n] = next_lr
             set_optimizer_lr(optimizer, next_lr)
 
+            runs[n].log({"dynamic_lr_ratio": ratio})
+
     # Validation evaluation
     validation_accuracies = []
     for n in range(node_num):
+        # skip evaluation if no contacts
+        if len(contact[str(n)]) == 0:
+            runs[n].log(
+                {
+                    "val_accuracy": last_eval_acc[n],
+                    "wafl_epoch": epoch + 1,
+                    "phase": "wafl_training",
+                },
+            )
+            continue
+
         acc = evaluate(nets[n], validate_dataloader, device)
         validation_accuracies.append(acc)
+        print(f"Node {n} Validation Accuracy {acc:.2f}%")
+        last_eval_acc[n] = acc
         runs[n].log(
             {
-                "wafl_val_accuracy": acc,
-                "wafl_epoch": pre_epoch + epoch + 1,
+                "val_accuracy": acc,
+                "wafl_epoch": epoch + 1,
                 "phase": "wafl_training",
             },
-            step=pre_epoch + epoch,
         )
 
     # save

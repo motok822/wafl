@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -55,6 +56,13 @@ class TrainingConfig(BaseModel):
     def validate_lr(cls, v):
         if v <= 0 or v > 1.0:
             raise ValueError("Learning rate must be between 0 and 1")
+        return v
+
+    @validator("save_dir")
+    def validate_save_dir(cls, v):
+        if v and not os.path.exists(v):
+            os.makedirs(v, exist_ok=True)
+            logger.info(f"Created save directory at: {v}")
         return v
 
 
