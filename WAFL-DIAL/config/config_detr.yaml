@@ -1,0 +1,38 @@
+training:
+  epochs: 300
+  local_train_epochs: 10
+  seed: 42
+  lr: 1e-5
+  save_dir: "output_detr"
+  fedprox:
+    enabled: false
+    alpha: 4e-1
+  dynamic_lr:
+    enabled: false
+    beta: 4e-1
+    target_ratio: 0.5
+    multiplier: 1.00
+
+dataset:
+  batch_size: 2  # DETR requires smaller batch size due to memory
+  class_num: 10  # Number of classes in custom dataset (adjust based on your data)
+  non_iid: 0.9
+  seed: 42
+  data_root: "data/custom"  # Path to custom dataset
+  train_images: "train2017"
+  val_images: "val2017"
+  train_annotations: "annotations/custom_train.json"
+  val_annotations: "annotations/custom_val.json"
+
+federated:
+  enabled: true
+  contact_pattern: "rwp_n04_a0250_r090_p03_s04.json"
+  num_devices: 4
+  local_training_steps: 10
+  max_mult: 1.0
+
+wandb:
+  enabled: true
+  project: "detr-wafl-4"
+  group: "graduation-thesis"
+  key: "8f04b7cc62418f10b17b79cf96ebeff1e8fa00b5"  # Replace with your actual key

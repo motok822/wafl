@@ -4,11 +4,17 @@ from collections import defaultdict
 from torch.utils.data import Subset
 
 
-def create_subsets(dataset, num_nodes, class_to_node, bias_ratio=0.9, seed=1):
+def create_subsets(
+    dataset, num_nodes, class_to_node, bias_ratio=0.9, seed=1, label_extractor=None
+):
     random.seed(seed)
     class_indices = defaultdict(list)
 
-    for idx, (_, label) in enumerate(dataset):
+    for idx, item in enumerate(dataset):
+        if label_extractor:
+            label = label_extractor(item)
+        else:
+            _, label = item
         class_indices[label].append(idx)
 
     for cls in class_indices:

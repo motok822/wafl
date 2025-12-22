@@ -80,6 +80,15 @@ class DatasetConfig(BaseModel):
         description="Non-IID ratio (0=IID, 1=completely non-IID)",
     )
     seed: int = Field(default=42, ge=0, description="Seed for dataset partitioning")
+    data_root: str = Field(default="data/custom", description="Path to custom dataset")
+    train_images: str = Field(default="train2017", description="Train images folder")
+    val_images: str = Field(default="val2017", description="Validation images folder")
+    train_annotations: str = Field(
+        default="annotations/custom_train.json", description="Train annotations file"
+    )
+    val_annotations: str = Field(
+        default="annotations/custom_val.json", description="Validation annotations file"
+    )
 
     @validator("batch_size")
     def validate_batch_size(cls, v):
